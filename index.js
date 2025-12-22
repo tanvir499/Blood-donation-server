@@ -131,9 +131,9 @@ async function run() {
     //payment
      app.post('/create-payment-checkout', async (req, res) => {
       const information = req.body
-      const amount = parseInt(information.donateAmount) * 100
+      const amount = parseInt(information.donateAmount) * 100;
 
-      const stripe = require('stripe')(process.env.STRIPE_SECRET2S);
+      
 
       const session = await stripe.checkout.sessions.create({
 
@@ -160,6 +160,9 @@ async function run() {
 
       res.send({ url: session.url })
     })
+
+    app.post('/payment-success', async (req, res) => {
+      const { session_id } = req.query
 
 
     await client.db("admin").command({ ping: 1 });
