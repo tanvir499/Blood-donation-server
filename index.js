@@ -173,6 +173,9 @@ async function run() {
       const isPaymentExist = await paymentsCollection.findOne({ transactionId })
        if (isPaymentExist) return
       if (session.payment_status == 'paid') {
+         const paymentInfo = {
+          amount: session.amount_total / 100,
+          currency: session.currency,
 
 
     await client.db("admin").command({ ping: 1 });
