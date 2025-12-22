@@ -171,6 +171,8 @@ async function run() {
        console.log(session)
       const transactionId = session.payment_intent
       const isPaymentExist = await paymentsCollection.findOne({ transactionId })
+       if (isPaymentExist) return
+      if (session.payment_status == 'paid') {
 
 
     await client.db("admin").command({ ping: 1 });
