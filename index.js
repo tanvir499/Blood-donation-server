@@ -137,7 +137,22 @@ async function run() {
 
       const session = await stripe.checkout.sessions.create({
 
-       
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              unit_amount: amount,
+              product_data: {
+                name: 'Please Donate'
+              }
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        metadata: {
+          donorName: information?.donorName
+        },
         customer_email: information?.donorEmail,
         success_url: `${process.env.SITE_DOMAIN}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.SITE_DOMAIN}/payment-cancelled`,
