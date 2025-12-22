@@ -171,12 +171,19 @@ async function run() {
        console.log(session)
       const transactionId = session.payment_intent
       const isPaymentExist = await paymentsCollection.findOne({ transactionId })
-       if (isPaymentExist) return
-      if (session.payment_status == 'paid') {
-         const paymentInfo = {
+       const paymentInfo = {
           amount: session.amount_total / 100,
           currency: session.currency,
+          donorEmail: session.customer_email,
+          transactionId,
+          payment_status: session.payment_status,
+          paidAt: new Date()
+        }
+        const result = await paymentsCollection.insertOne(paymentInfo)
+        return res.send(result)
+      }
 
+    })
 
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
