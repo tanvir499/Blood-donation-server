@@ -168,6 +168,10 @@ async function run() {
         session_id
       );
 
+       console.log(session)
+      const transactionId = session.payment_intent
+      const isPaymentExist = await paymentsCollection.findOne({ transactionId })
+
 
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
