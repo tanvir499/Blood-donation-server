@@ -52,13 +52,16 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     // Send a ping to confirm a successful connection
 
     //save photoUrl to database
     const database = client.db('missionscic11DB');
     const userCollections = database.collection('user');
     const requestsCollections = database.collection('request');
+    const paymentsCollection = database.collection('payments')
+    const volunteersCollection = database.collection('volunteers')
+
 
     app.post('/users', async (req, res)=>{
        const userInfo = req.body;
@@ -108,6 +111,26 @@ async function run() {
        res.send(result);
     })
 
+    app.get('/all-requests', async (req, res) => {
+      const result = await requestsCollections.find().toArray()
+      res.send(result)
+    })
+
+    const { ObjectId } = require("mongodb");
+
+    app.get('/request/:id', async (req, res) => {
+      const { id } = req.params;
+
+      const query = { _id: new ObjectId(id) };
+      const result = await requestsCollections.findOne(query);
+
+      if (!result) {
+        return res.status(404).send({ message: "Request not found" });
+      }
+
+      res.send(result);
+    });
+
    //for my-request
    app.get('/my-request', verifyFbToken, async(req,res)=>{
       const email = req.decoded_email;
@@ -128,12 +151,43 @@ async function run() {
       res.send({request : result ,totalRequest});
    })
 
+   //search-request
+    app.get('/search-requests', async (req, res) => {
+      const { bloodGroup, district, upazila } = req.query
+      const query = {}
+      if (!query) return
+      if (bloodGroup) {
+        query.bloodGroup = bloodGroup.replace(/ /g, "+").trim()
+      }
+      if (district) {
+        query.district = district
+      }
+      if (upazila) {
+        query.upazila = upazila
+      }
+      console.log(query)
+      const result = await requestsCollections.find(query).toArray()
+      res.send(result)
+    })
+    
+    //volunteers
+    app.post('/add-volunteers', async (req, res) => {
+      const userInfo = req.body;
+      userInfo.createdAt = new Date()
+      userInfo.status = "active"
+      const result = await volunteersCollection.insertOne(userInfo)
+      res.send(result)
+    })
+    app.get('/volunteers', async (req, res) => {
+      const result = await volunteersCollection.find().toArray();
+      res.send(result);
+    });
+
+
     //payment
      app.post('/create-payment-checkout', async (req, res) => {
       const information = req.body
       const amount = parseInt(information.donateAmount) * 100;
-
-      
 
       const session = await stripe.checkout.sessions.create({
 
@@ -188,7 +242,7 @@ async function run() {
     })
 
 
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
